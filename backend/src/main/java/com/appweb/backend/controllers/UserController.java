@@ -3,11 +3,13 @@ package com.appweb.backend.controllers;
 import com.appweb.backend.models.User;
 import com.appweb.backend.services.UserService;
 import com.appweb.backend.dto.UserDTO;
+import com.appweb.backend.dto.UserResponseDTO;
+
 import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 
 @RestController
 @RequestMapping("/users")
@@ -19,18 +21,26 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Obtener todos los usuarios
+    // Obtener usuarios (sin mostrar password)
     @GetMapping
-public Page<User> getUsers(Pageable pageable) {
-    return userService.getUsers(pageable);
-}
+    public Page<UserResponseDTO> getUsers(Pageable pageable) {
+
+        Page<User> users = userService.getUsers(pageable);
+
+        return users.map(user -> new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        ));
+    }
 
     // Crear usuario
     @PostMapping
     public User createUser(@RequestBody @Valid UserDTO userDTO) {
 
         User user = new User();
-        user.setName(userDTO.getName());
+        user.setUsername(userDTO.getName());
         user.setEmail(userDTO.getEmail());
 
         return userService.createUser(user);
@@ -38,8 +48,16 @@ public Page<User> getUsers(Pageable pageable) {
 
     // Obtener usuario por ID
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public UserResponseDTO getUserById(@PathVariable Long id) {
+
+        User user = userService.getUserById(id);
+
+        return new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 
     // Eliminar usuario
