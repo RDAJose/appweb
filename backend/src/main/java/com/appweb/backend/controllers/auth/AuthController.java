@@ -2,11 +2,10 @@ package com.appweb.backend.controllers.auth;
 
 import com.appweb.backend.dto.LoginRequest;
 import com.appweb.backend.dto.RegisterRequest;
-import com.appweb.backend.models.User;
 import com.appweb.backend.models.Role;
+import com.appweb.backend.models.User;
 import com.appweb.backend.security.JwtService;
 import com.appweb.backend.services.UserService;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,35 +27,32 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // ✔️ REGISTER
     @PostMapping("/register")
     public User register(@RequestBody RegisterRequest request) {
 
         User user = new User();
-
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
-
-        // password encriptado
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        // 🔥 ROLE POR DEFECTO
         user.setRole(Role.USER);
 
-        return userService.save(user);
+        return userService.saveUser(user);
     }
 
+    // ✔️ LOGIN
     @PostMapping("/login")
     public Map<String, String> login(@RequestBody LoginRequest request) {
 
-        User user = userService.findByUsername(request.getUsername());
+        User user = userService.getByUsername(request.getUsername());
 
-        if (user == null) {
-            throw new RuntimeException("Usuario no encontrado");
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
         }
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Password incorrecto");
-        }
-
+        // 🔥 IMPORTANTE: generamos token con username
         String token = jwtService.generateToken(user.getUsername());
 
         return Map.of("token", token);
