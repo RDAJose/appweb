@@ -84,8 +84,15 @@ public class PostService {
             throw new RuntimeException("No autorizado");
         }
 
-        post.setTitle(dto.getTitle());
-        post.setContent(dto.getContent());
+        // 🔒 Update seguro (evita nulls)
+        if (dto.getTitle() != null) {
+            post.setTitle(dto.getTitle());
+            post.setSlug(dto.getTitle().toLowerCase().replace(" ", "-"));
+        }
+
+        if (dto.getContent() != null) {
+            post.setContent(dto.getContent());
+        }
 
         return postRepository.save(post);
     }

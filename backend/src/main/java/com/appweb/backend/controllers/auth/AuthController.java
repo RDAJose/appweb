@@ -53,7 +53,10 @@ public class AuthController {
         }
 
         // 🔥 IMPORTANTE: generamos token con username
-        String token = jwtService.generateToken(user.getUsername());
+        String token = jwtService.generateToken(
+                user.getUsername(),
+                user.getRole().name()
+        );
 
         return Map.of("token", token);
     }
